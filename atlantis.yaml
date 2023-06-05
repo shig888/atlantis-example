@@ -1,0 +1,34 @@
+version: 3
+automerge: false
+delete_source_branch_on_merge: true
+parallel_plan: true
+parallel_apply: true
+abort_on_execution_order_fail: true
+projects:
+- name: my-project-name
+  branch: /main/
+  dir: .
+  workspace: default
+  terraform_version: v0.11.0
+  delete_source_branch_on_merge: true
+  repo_locking: true
+  autoplan:
+    when_modified: ["*.tf", "../modules/**/*.tf", ".terraform.lock.hcl"]
+    enabled: true
+  plan_requirements: [mergeable, undiverged]
+  apply_requirements: [mergeable, approved, undiverged]
+  import_requirements: [mergeable, approved, undiverged]
+  execution_order_group: 1
+  workflow: myworkflow
+workflows:
+  myworkflow:
+    plan:
+      steps:
+      - init
+      - plan:
+          extra_args: ["-lock", "false"]
+      - run: my-custom-command arg1 arg2
+    apply:
+      steps:
+      - run: echo hi
+      - apply
